@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: 'http://localhost:5253/api/',
-
+    withCredentials: true,
 })
 
 const getAllDishes = async () => {
