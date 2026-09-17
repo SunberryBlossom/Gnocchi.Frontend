@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { CheckAuth } from '../services/AuthService'
-import { Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router'
 
 
 function ProtectedRoute({ children }) {
@@ -22,8 +22,10 @@ function ProtectedRoute({ children }) {
     }
 
     if (isAuthenticated === false) {
-        return <Navigate to="/login" />;
+        return <Navigate to="/" />;
     }
 
     return children;
 }
+
+export { ProtectedRoute }
