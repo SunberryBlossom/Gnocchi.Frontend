@@ -9,6 +9,10 @@ async function Signin(email, password) {
         await api.post('login?useCookies=true', { email, password,})
 }
 
+async function Signup(email, password) {
+    await api.post('register', { email, password })
+}
+
 async function CheckAuth() {
     try {
         await api.get('manage/info')
@@ -19,4 +23,4 @@ async function CheckAuth() {
         }
     }
 }
-export { Signin, CheckAuth }
+export { Signin, CheckAuth, Signup }
