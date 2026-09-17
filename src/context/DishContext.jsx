@@ -1,7 +1,7 @@
-
+import { createContext, useState, useEffect } from 'react'
+import { getAllDishes} from '../services/DishServices'
 
 export const DishContext = createContext()
-
 export const DishProvider = ({ children }) => {
     const [dishes, setDishes] = useState([])
 
