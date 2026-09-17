@@ -1,22 +1,22 @@
 import './App.css'
-import { DishProvider } from './context/DishContext'
-import DishList from './components/DishList'
-import DishCreate from './components/DishCreate'
 import { useState } from 'react'
+import { Routes, Route } from 'react-router'
+import { LoginPage } from './pages/LoginPage.jsx'
+import { SignupPage } from './pages/SignupPage.jsx'
+import { DashboardPage } from './pages/DashboardPage.jsx'
+import { MissingPage } from './pages/MissingPage.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
-      <header>
-        <h1>Welcome to the Gnocchi App</h1>
-      </header>
-      <DishProvider>
-        <DishList />
-        <DishCreate />
-      </DishProvider>
-    </>
+    <Routes>
+      <Route path='/' element={<LoginPage />} />
+      <Route path='/signup' element={<SignupPage />} />
+      <Route path='/dashboard' element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path='*' element={<MissingPage />} />
+    </Routes>
   )
 }
 
