@@ -1,14 +1,22 @@
 import axios from 'axios'
 
 const api = axios.create({
-    baseURL: 'http://localhost:5253/api/',
+    baseURL: 'http://localhost:5253/',
     withCredentials: true,
 })
 
-async function signin(email, password) {
+async function Signin(email, password) {
+        await api.post('login?useCookies=true', { email, password,})
+}
+
+async function CheckAuth() {
     try {
-        const response = await api.post('login?useCookies=true', { email, password })
+        await api.get('manage/info')
+        return true
     } catch (error) {
-        throw new Error(error.response?.data?.message || 'Signin failed')
+        if (error.response.status === 401) {
+            return false
+        }
     }
 }
+export { Signin, CheckAuth }
