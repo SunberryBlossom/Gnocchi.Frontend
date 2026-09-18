@@ -9,6 +9,8 @@ import {
   Paper,
   Container,
   Button,
+  IconButton,
+  Tooltip,
   useMediaQuery,
   useTheme
 } from '@mui/material'
@@ -16,6 +18,9 @@ import {
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlined'
+import LogoutIcon from '@mui/icons-material/Logout'
+
+import { Signout } from '../services/AuthService'
 
 export default function Layout() {
   const navigate = useNavigate()
@@ -29,6 +34,16 @@ export default function Layout() {
     { label: 'Dishes', value: '/dishes', icon: <RestaurantMenuIcon /> }
   ]
 
+  const handleLogout = async () => {
+    try {
+      await Signout()
+    } catch (err) {
+      console.error('Logout failed:', err)
+    } finally {
+      navigate('/', { replace: true })
+    }
+  }
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5', pb: isDesktop ? 4 : 9 }}>
       <AppBar position="fixed" color="primary" elevation={1}>
@@ -37,8 +52,8 @@ export default function Layout() {
             Gnocchi
           </Typography>
 
-          {isDesktop && (
-            <Box sx={{ display: 'flex', gap: 1 }}>
+          {isDesktop ? (
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               {navItems.map((item) => (
                 <Button
                   key={item.value}
@@ -53,7 +68,19 @@ export default function Layout() {
                   {item.label}
                 </Button>
               ))}
+
+              <Tooltip title="Log out">
+                <IconButton color="inherit" onClick={handleLogout} sx={{ ml: 1 }}>
+                  <LogoutIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
+          ) : (
+            <Tooltip title="Log out">
+              <IconButton color="inherit" onClick={handleLogout}>
+                <LogoutIcon />
+              </IconButton>
+            </Tooltip>
           )}
         </Toolbar>
       </AppBar>
