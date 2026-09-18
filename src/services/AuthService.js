@@ -14,7 +14,11 @@ async function Signout() {
 }
 
 async function Signup(email, password) {
-    await api.post('register', { email, password })
+  const response = await api.post('register', { email, password })
+  
+  await Signin(email, password)
+  
+  return response
 }
 
 async function CheckAuth() {

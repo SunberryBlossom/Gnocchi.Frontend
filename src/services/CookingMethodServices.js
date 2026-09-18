@@ -1,33 +1,25 @@
-import axios from 'axios';
+import axios from 'axios'
 
 const api = axios.create({
-    baseURL: 'http://localhost:5253/api/',
-    withCredentials: true,
+  baseURL: 'http://localhost:5253/api/',
+  withCredentials: true
 })
 
-const getAllCookingMethods = async () => {
-    const response = await api.get('cookingmethods')
-    return response.data
+export async function getAllCookingMethods() {
+  const response = await api.get('CookingMethods')
+  return response.data
 }
 
-const getCookingMethodById = async id => {
-    const response = await api.get(`cookingmethods/${id}`)
-    return response.data
+export async function createCookingMethod(dto) {
+  const response = await api.post('CookingMethods', {
+    Method: dto.method,
+    ScoreId: dto.scoreId
+  })
+  return response.data
 }
 
-const createCookingMethod = async cookingMethod => {
-    const response = await api.post('cookingmethods', cookingMethod)
-    return response.data
+export async function deleteCookingMethod(id) {
+  await api.delete('CookingMethods', {
+    data: { CookingMethodId: id }
+  })
 }
-
-const updateCookingMethod = async (id, scoreId) => {
-    const response = await api.put(`cookingmethods/${id}`, scoreId)
-    return response.data
-}
-
-const deleteCookingMethod = async id => {
-    const response = await api.delete(`cookingmethods/${id}`)
-    return response.data
-}
-
-export { getAllCookingMethods, getCookingMethodById, createCookingMethod, updateCookingMethod, deleteCookingMethod };

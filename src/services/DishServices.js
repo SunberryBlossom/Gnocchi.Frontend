@@ -1,33 +1,31 @@
-import axios from 'axios';
+import axios from 'axios'
 
 const api = axios.create({
-    baseURL: 'http://localhost:5253/api/',
-    withCredentials: true,
+  baseURL: 'http://localhost:5253/api/',
+  withCredentials: true
 })
 
-const getAllDishes = async () => {
-    const response = await api.get('dishes')
-    return response.data
+export async function getAllDishes() {
+  const response = await api.get('Dishes')
+  return response.data
 }
 
-const getDishById = async id => {
-    const response = await api.get(`dishes/${id}`)
-    return response.data
+export async function createDish(dto) {
+  const response = await api.post('Dishes', dto)
+  return response.data
 }
 
-const createDish = async dish => {
-    const response = await api.post('dishes', dish)
-    return response.data
+export async function updateDish(dishId, newName) {
+  const response = await api.patch('Dishes', {
+    DishId: dishId,
+    Attribute: 'name',
+    NewValue: newName
+  })
+  return response.data
 }
 
-const updateDish = async (id, newValue) => {
-    const response = await api.put(`dishes/${id}`, newValue)
-    return response.data
+export async function deleteDish(id) {
+  await api.delete('Dishes', {
+    data: { DishId: id }
+  })
 }
-
-const deleteDish = async id => {
-    const response = await api.delete(`dishes/${id}`)
-    return response.data
-}
-
-export { getAllDishes, getDishById, createDish, updateDish, deleteDish };

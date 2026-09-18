@@ -1,33 +1,35 @@
-import axios from 'axios';
+import axios from 'axios'
 
 const api = axios.create({
-    baseURL: 'http://localhost:5253/api/',
-    withCredentials: true,
+  baseURL: 'http://localhost:5253/api/',
+  withCredentials: true
 })
 
-const getAllIngredients = async () => {
-    const response = await api.get('ingredients')
-    return response.data
+export async function getAllIngredients() {
+  const response = await api.get('Ingredients')
+  return response.data
 }
 
-const getIngredientById = async id => {
-    const response = await api.get(`ingredients/${id}`)
-    return response.data
+export async function createIngredient(dto) {
+  const response = await api.post('Ingredients', {
+    Name: dto.name,
+    ScoreId: dto.scoreId,
+    EdibleRaw: dto.edibleRaw || false
+  })
+  return response.data
 }
 
-const createIngredient = async ingredient => {
-    const response = await api.post('ingredients', ingredient)
-    return response.data
+export async function updateIngredient(ingredientId, newName) {
+  const response = await api.patch('Ingredients', {
+    IngredientId: ingredientId,
+    Attribute: 'name',
+    NewValue: newName
+  })
+  return response.data
 }
 
-const updateIngredient = async (id, newValue, attribute) => {
-    const response = await api.put(`ingredients/${id}`, { NewValue: newValue, Attribute: attribute })
-    return response.data
+export async function deleteIngredient(ingredientId) {
+  await api.delete('Ingredients', {
+    data: { IngredientId: ingredientId }
+  })
 }
-
-const deleteIngredient = async id => {
-    const response = await api.delete(`ingredients/${id}`)
-    return response.data
-}
-
-export { getAllIngredients, getIngredientById, createIngredient, updateIngredient, deleteIngredient };

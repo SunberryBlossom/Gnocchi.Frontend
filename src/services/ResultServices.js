@@ -1,29 +1,26 @@
-import axios from 'axios';
+import axios from 'axios'
 
 const api = axios.create({
-    baseURL: 'http://localhost:5253/api/',
-    withCredentials: true,
-
+  baseURL: 'http://localhost:5253/api/',
+  withCredentials: true
 })
 
-const getAllResults = async () => {
-    const response = await api.get('results')
-    return response.data
+export async function getAllResults() {
+  const response = await api.get('Results')
+  return response.data
 }
 
-const getResultById = async id => {
-    const response = await api.get(`results/${id}`)
-    return response.data
+export async function createResult(dto) {
+  const response = await api.post('Results', {
+    Comment: dto.comment || dto.notes,
+    CookingMethodId: dto.cookingMethodId,
+    IngredientId: dto.ingredientId
+  })
+  return response.data
 }
 
-const createResult = async result => {
-    const response = await api.post('results', result)
-    return response.data
+export async function deleteResult(resultId) {
+  await api.delete('Results', {
+    data: { ResultId: resultId }
+  })
 }
-
-const deleteResult = async id => {
-    const response = await api.delete(`results/${id}`)
-    return response.data
-}
-
-export { getAllResults, getResultById, createResult, deleteResult };
