@@ -18,6 +18,8 @@ import { PieChart } from '@mui/x-charts/PieChart'
 
 import { getAllResults } from '../services/ResultServices'
 import { getAllIngredients } from '../services/IngredientServices'
+import { getAllCookingMethods } from '../services/CookingMethodServices'
+import { getMethodLabel } from '../constants/cookingMethods'
 
 export function DashboardPage() {
   const [loading, setLoading] = useState(true)
@@ -27,40 +29,99 @@ export function DashboardPage() {
     avgScore: 0
   })
 
-  const [topIngredientsData] = useState({
-    categories: ['Guanciale', 'Ricotta', 'San Marzano', 'Russet Potato'],
-    series: [4.8, 4.5, 4.2, 3.9]
+  const [topIngredientsData, setTopIngredientsData] = useState({
+    categories: [],
+    series: []
   })
 
-  const [methodsPieData] = useState([
-    { id: 0, value: 35, label: 'Pan Frying' },
-    { id: 1, value: 25, label: 'Baking' },
-    { id: 2, value: 20, label: 'Sous-vide' },
-    { id: 3, value: 20, label: 'Boiling' }
-  ])
+  const [methodsPieData, setMethodsPieData] = useState([])
 
   useEffect(() => {
     loadDashboardData()
   }, [])
 
+  const getScoreValue = (scoreObj) => {
+    if (!scoreObj) return 0
+    if (typeof scoreObj.rating === 'number') return scoreObj.rating + 1
+    if (typeof scoreObj.ratingValue === 'number') return scoreObj.ratingValue
+    return 0
+  }
+
   const loadDashboardData = async () => {
     try {
       setLoading(true)
-      const results = await getAllResults()
-      const ingredients = await getAllIngredients()
 
-      if (results && results.length > 0) {
-        const total = results.length
-        const avg = (results.reduce((acc, curr) => acc + (curr.score || 0), 0) / total).toFixed(1)
+      const [resultsRes, ingredientsRes, methodsRes] = await Promise.allSettled([
+        getAllResults(),
+        getAllIngredients(),
+        getAllCookingMethods()
+      ])
 
-        setStats({
-          totalResults: total,
-          topIngredient: ingredients?.[0]?.name || 'Guanciale',
-          avgScore: Number(avg)
-        })
-      }
+      const results = resultsRes.status === 'fulfilled' ? resultsRes.value || [] : []
+      const ingredients = ingredientsRes.status === 'fulfilled' ? ingredientsRes.value || [] : []
+      const methods = methodsRes.status === 'fulfilled' ? methodsRes.value || [] : []
+
+      // 1. Slå upp ingrediensnamn och räkna frekvens i loggade resultat
+      const ingMap = {}
+      ingredients.forEach((i) => {
+        const id = String(i.ingredientId || i.id || '').toLowerCase()
+        ingMap[id] = i.name || i.Name
+      })
+
+      const ingCounts = {}
+      results.forEach((res) => {
+        const iId = String(res.ingredientId || '').toLowerCase()
+        const name = ingMap[iId]
+        if (name) {
+          ingCounts[name] = (ingCounts[name] || 0) + 1
+        }
+      })
+
+      const sortedIngs = Object.entries(ingCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+
+      const categories = sortedIngs.map(([name]) => name)
+      const series = sortedIngs.map(([, count]) => count)
+
+      setTopIngredientsData({
+        categories: categories.length > 0 ? categories : ['Inga resultat'],
+        series: series.length > 0 ? series : [0]
+      })
+
+      // 2. Koppla resultats cookingMethodId till metod-labels för PieChart
+      const methodMap = {}
+      methods.forEach((m) => {
+        const id = String(m.cookingMethodId || m.id || '').toLowerCase()
+        const mEnum = m.method !== undefined ? m.method : m.Method
+        methodMap[id] = getMethodLabel(mEnum)
+      })
+
+      const methodCounts = {}
+      results.forEach((res) => {
+        const mId = String(res.cookingMethodId || '').toLowerCase()
+        const label = methodMap[mId] || 'Övrigt'
+        methodCounts[label] = (methodCounts[label] || 0) + 1
+      })
+
+      const pieData = Object.entries(methodCounts).map(([label, value], index) => ({
+        id: index,
+        value,
+        label
+      }))
+
+      setMethodsPieData(pieData)
+
+      // 3. Sätt översiktskort
+      const topIngredientName = sortedIngs.length > 0 ? sortedIngs[0][0] : 'N/A'
+
+      setStats({
+        totalResults: results.length,
+        topIngredient: topIngredientName,
+        avgScore: results.length > 0 ? (results.length / ingredients.length).toFixed(1) : '0.0'
+      })
     } catch (err) {
-      console.error('Failed to load dashboard data', err)
+      console.error('Kunde inte läsa in dashboarddata:', err)
     } finally {
       setLoading(false)
     }
@@ -128,12 +189,18 @@ export function DashboardPage() {
           </Typography>
 
           <Box sx={{ width: '100%', overflowX: 'auto' }}>
-            <BarChart
-              xAxis={[{ scaleType: 'band', data: topIngredientsData.categories }]}
-              series={[{ data: topIngredientsData.series, color: '#1976d2', label: 'Average Score' }]}
-              height={260}
-              margin={{ top: 20, bottom: 30, left: 40, right: 10 }}
-            />
+            {topIngredientsData.categories.length > 0 ? (
+              <BarChart
+                xAxis={[{ scaleType: 'band', data: topIngredientsData.categories }]}
+                series={[{ data: topIngredientsData.series, color: '#1976d2', label: 'Score' }]}
+                height={260}
+                margin={{ top: 20, bottom: 30, left: 40, right: 10 }}
+              />
+            ) : (
+              <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
+                Ingen betygssatt ingrediens hittades ännu.
+              </Typography>
+            )}
           </Box>
         </CardContent>
       </Card>
@@ -148,18 +215,24 @@ export function DashboardPage() {
           </Typography>
 
           <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-            <PieChart
-              series={[
-                {
-                  data: methodsPieData,
-                  innerRadius: 30,
-                  outerRadius: 80,
-                  paddingAngle: 5,
-                  cornerRadius: 5,
-                },
-              ]}
-              height={220}
-            />
+            {methodsPieData.length > 0 ? (
+              <PieChart
+                series={[
+                  {
+                    data: methodsPieData,
+                    innerRadius: 30,
+                    outerRadius: 80,
+                    paddingAngle: 5,
+                    cornerRadius: 5,
+                  },
+                ]}
+                height={220}
+              />
+            ) : (
+              <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
+                Inga tillagningsmetoder registrerade än.
+              </Typography>
+            )}
           </Box>
         </CardContent>
       </Card>

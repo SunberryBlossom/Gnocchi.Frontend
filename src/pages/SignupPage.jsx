@@ -35,14 +35,33 @@ function SignupPage() {
     setLoading(true)
 
     try {
-      const response = await Signup(email, password)
-      if (response) {
-        navigate('/dashboard')
-      } else {
-        setError('Signup failed. Please try again.')
-      }
+      await Signup(email, password)
+      navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.')
+      console.error('Full Signup Error:', err.response?.data)
+
+      const data = err.response?.data
+      let errorMessage = 'Signup failed. Please try again.'
+
+      if (data) {
+        // Om Identity returnerar en array med felbeskrivningar (t.ex. DuplicateUserName)
+        if (Array.isArray(data)) {
+          errorMessage = data.map((item) => item.description).join(' ')
+        } 
+        // Om felet ligger i ett standard .NET ValidationErrors-objekt
+        else if (data.errors) {
+          if (Array.isArray(data.errors)) {
+            errorMessage = data.errors.map((item) => item.description || item).join(' ')
+          } else if (typeof data.errors === 'object') {
+            errorMessage = Object.values(data.errors).flat().join(' ')
+          }
+        } 
+        else if (data.detail) {
+          errorMessage = data.detail
+        }
+      }
+
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
