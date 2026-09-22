@@ -10,7 +10,7 @@ async function Signin(email, password) {
 }
 
 async function Signout() {
-    await api.post('api/auth/logout')
+    await api.post('auth/logout')
 }
 
 async function Signup(email, password) {
