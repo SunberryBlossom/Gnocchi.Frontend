@@ -87,21 +87,20 @@ export function DishesPage() {
       setScores(scoreRes || [])
     } catch (err) {
       console.error('Failed to fetch data from backend:', err)
-      setError('Kunde inte hämta data från servern. Kontrollera anslutningen.')
+      setError('Error connecting to the backend. Please try again later.')
     } finally {
       setLoading(false)
     }
   }
 
-  // Generic Delete Handler som synkar med backend
   const handleDelete = async (id, serviceDeleteFunc, entityName) => {
-    if (window.confirm(`Är du säker på att du vill ta bort denna ${entityName}?`)) {
+    if (window.confirm(`Are you sure you want to delete this ${entityName}?`)) {
       try {
         await serviceDeleteFunc(id)
         await loadLibraryData()
       } catch (err) {
-        console.error(`Kunde inte ta bort ${entityName}`, err)
-        alert(`Ett fel uppstod vid radering av ${entityName}.`)
+        console.error(`Could not delete ${entityName}`, err)
+        alert(`An error occurred while deleting ${entityName}.`)
       }
     }
   }
@@ -122,8 +121,8 @@ export function DishesPage() {
       await loadLibraryData()
       setEditDishOpen(false)
     } catch (err) {
-      console.error('Kunde inte uppdatera rätt:', err)
-      alert('Uppdatering misslyckades. Kontrollera att namnet är giltigt.')
+      console.error('Could not update dish:', err)
+      alert('Update failed.')
     }
   }
 
@@ -145,8 +144,8 @@ const handleSaveIng = async () => {
       await loadLibraryData()
       setEditIngOpen(false)
     } catch (err) {
-      console.error('Kunde inte uppdatera ingrediens:', err)
-      alert('Uppdatering misslyckades.')
+      console.error('Could not update ingredient:', err)
+      alert('Update failed.')
     }
   }
 
@@ -183,7 +182,6 @@ const handleSaveIng = async () => {
           <Tab icon={<OutdoorGrillIcon />} iconPosition="start" label={`Methods (${methods.length})`} />
           <Tab icon={<AssessmentIcon />} iconPosition="start" label={`Results (${results.length})`} />
           <Tab icon={<TuneIcon />} iconPosition="start" label={`Variants (${variants.length})`} />
-          <Tab icon={<StarIcon />} iconPosition="start" label={`Scores (${scores.length})`} />
         </Tabs>
       </Box>
 
@@ -192,7 +190,7 @@ const handleSaveIng = async () => {
         <Grid container spacing={2}>
           {dishes.length === 0 ? (
             <Grid item xs={12}>
-              <Typography color="text.secondary">Inga rätter hittades i databasen.</Typography>
+              <Typography color="text.secondary">No dishes could be fetched from the database.</Typography>
             </Grid>
           ) : (
             dishes.map((dish) => {
@@ -215,7 +213,7 @@ const handleSaveIng = async () => {
                         </Box>
                       </Box>
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        {dish.description || 'Ingen beskrivning tillgänglig.'}
+                        {dish.description || 'No description available.'}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -230,7 +228,7 @@ const handleSaveIng = async () => {
       {activeTab === 1 && (
         <Stack direction="row" flexWrap="wrap" gap={1}>
           {ingredients.length === 0 ? (
-            <Typography color="text.secondary">Inga ingredienser finns registrerade.</Typography>
+            <Typography color="text.secondary">No ingredients are registered.</Typography>
           ) : (
             ingredients.map((ing) => {
               const id = ing.ingredientId || ing.id
@@ -254,17 +252,17 @@ const handleSaveIng = async () => {
       {activeTab === 2 && (
         <Stack direction="row" flexWrap="wrap" gap={1}>
           {methods.length === 0 ? (
-            <Typography color="text.secondary">Inga tillagningsmetoder registrerade.</Typography>
+            <Typography color="text.secondary">No cooking methods are registered.</Typography>
           ) : (
             methods.map((method) => {
               const id = method.cookingMethodId || method.id
               return (
                 <Chip
                   key={id}
-                  label={method.method !== undefined ? `Metod #${method.method}` : method.name}
+                  label={method.method !== undefined ? `Method #${method.method}` : method.name}
                   color="secondary"
                   variant="outlined"
-                  onDelete={() => handleDelete(id, deleteCookingMethod, 'metod')}
+                  onDelete={() => handleDelete(id, deleteCookingMethod, 'method')}
                   deleteIcon={<DeleteIcon fontSize="small" />}
                 />
               )
@@ -278,7 +276,7 @@ const handleSaveIng = async () => {
         <Grid container spacing={2}>
           {results.length === 0 ? (
             <Grid item xs={12}>
-              <Typography color="text.secondary">Inga resultat loggade ännu.</Typography>
+              <Typography color="text.secondary">No results logged yet.</Typography>
             </Grid>
           ) : (
             results.map((res) => {
@@ -289,8 +287,8 @@ const handleSaveIng = async () => {
                     <CardContent>
                       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
                         <Box display="flex" gap={1}>
-                          <Chip label={res.ingredientName || 'Ingrediens'} size="small" color="primary" />
-                          <Chip label={res.cookingMethodName || 'Metod'} size="small" color="secondary" />
+                          <Chip label={res.ingredientName || 'Ingredient'} size="small" color="primary" />
+                          <Chip label={res.cookingMethodName || 'Method'} size="small" color="secondary" />
                         </Box>
                         <IconButton size="small" onClick={() => handleDelete(id, deleteResult, 'resultat')} color="error">
                           <DeleteIcon fontSize="small" />
@@ -320,7 +318,7 @@ const handleSaveIng = async () => {
         <Grid container spacing={2}>
           {variants.length === 0 ? (
             <Grid item xs={12}>
-              <Typography color="text.secondary">Inga varianter registrerade.</Typography>
+              <Typography color="text.secondary">No variants are registered.</Typography>
             </Grid>
           ) : (
             variants.map((variant) => {
@@ -338,37 +336,8 @@ const handleSaveIng = async () => {
                         </IconButton>
                       </Box>
                       <Typography variant="body2" color="text.secondary">
-                        {variant.description || 'Inga detaljer angivna.'}
+                        {variant.description || 'No details available.'}
                       </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              )
-            })
-          )}
-        </Grid>
-      )}
-
-      {/* 6. SCORES TAB */}
-      {activeTab === 5 && (
-        <Grid container spacing={2}>
-          {scores.length === 0 ? (
-            <Grid item xs={12}>
-              <Typography color="text.secondary">Inga poäng registrerade.</Typography>
-            </Grid>
-          ) : (
-            scores.map((s) => {
-              const id = s.scoreId || s.id
-              return (
-                <Grid item xs={12} sm={6} md={4} key={id}>
-                  <Card sx={{ boxShadow: 2 }}>
-                    <CardContent>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Rating value={s.rating || s.value || 0} readOnly precision={0.5} />
-                        <IconButton size="small" onClick={() => handleDelete(id, deleteScore, 'poäng')} color="error">
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -380,30 +349,30 @@ const handleSaveIng = async () => {
 
       {/* MODAL DIALOGS */}
       <Dialog open={editDishOpen} onClose={() => setEditDishOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Redigera rätt</DialogTitle>
+        <DialogTitle>Edit dish</DialogTitle>
         <DialogContent>
           <Box pt={1} display="flex" flexDirection="column" gap={2}>
-            <TextField label="Namn" fullWidth value={dishName} onChange={(e) => setDishName(e.target.value)} />
-            <TextField label="Beskrivning" fullWidth multiline rows={3} value={dishDescription} onChange={(e) => setDishDescription(e.target.value)} />
+            <TextField label="Name" fullWidth value={dishName} onChange={(e) => setDishName(e.target.value)} />
+            <TextField label="Description" fullWidth multiline rows={3} value={dishDescription} onChange={(e) => setDishDescription(e.target.value)} />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditDishOpen(false)}>Avbryt</Button>
-          <Button onClick={handleSaveDish} variant="contained">Spara</Button>
+          <Button onClick={() => setEditDishOpen(false)}>Cancel</Button>
+          <Button onClick={handleSaveDish} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={editIngOpen} onClose={() => setEditIngOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Redigera ingrediens</DialogTitle>
+        <DialogTitle>Edit ingredient</DialogTitle>
         <DialogContent>
           <Box pt={1} display="flex" flexDirection="column" gap={2}>
-            <TextField label="Nytt värde" fullWidth value={ingValue} onChange={(e) => setIngValue(e.target.value)} />
-            <TextField label="Attribut" fullWidth value={ingAttribute} onChange={(e) => setIngAttribute(e.target.value)} helperText="t.ex. Name" />
+            <TextField label="New value" fullWidth value={ingValue} onChange={(e) => setIngValue(e.target.value)} />
+            <TextField label="Attribute" fullWidth value={ingAttribute} onChange={(e) => setIngAttribute(e.target.value)} helperText="t.ex. Name" />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditIngOpen(false)}>Avbryt</Button>
-          <Button onClick={handleSaveIng} variant="contained">Spara</Button>
+          <Button onClick={() => setEditIngOpen(false)}>Cancel</Button>
+          <Button onClick={handleSaveIng} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
     </Box>

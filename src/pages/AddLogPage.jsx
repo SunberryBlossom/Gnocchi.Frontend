@@ -88,9 +88,6 @@ export function AddLogPage() {
         getAllResults()
       ])
 
-      // Logga rådata för att se om anropen blev fulfilled eller rejected
-      console.log('API-svar:', { ingData, methodData, variantData, resultData })
-
       setIngredients(ingData.status === 'fulfilled' ? ingData.value || [] : [])
       setMethods(methodData.status === 'fulfilled' ? methodData.value || [] : [])
       setVariants(variantData.status === 'fulfilled' ? variantData.value || [] : [])
@@ -99,7 +96,7 @@ export function AddLogPage() {
       console.log('Jämförelse av första elementen:', {
         resultat: resultData.value?.[0],
         ingrediens: ingData.value?.[0],
-        metod: methodData.value?.[0]
+        method: methodData.value?.[0]
       })
     } catch (err) {
       console.error('Kunde inte hämta data:', err)
@@ -110,13 +107,13 @@ export function AddLogPage() {
   }
 
   const getIngredientName = (resultOrId) => {
-    if (!resultOrId) return 'Okänd ingrediens'
+    if (!resultOrId) return 'Unknown ingredient'
 
     const targetId = typeof resultOrId === 'object'
       ? (resultOrId.ingredientId || resultOrId.IngredientId)
       : resultOrId
 
-    if (!targetId) return 'Okänd ingrediens'
+    if (!targetId) return 'Unknown ingredient'
 
     const targetStr = String(targetId).trim().toLowerCase()
 
@@ -125,18 +122,17 @@ export function AddLogPage() {
       return id && String(id).trim().toLowerCase() === targetStr
     })
 
-    return found ? (found.name || found.Name) : 'Okänd ingrediens'
+    return found ? (found.name || found.Name) : 'Unknown ingredient'
   }
 
-  // Hjälpfunktion för att hämta Metod-label från ett Result-objekt eller ett ID
   const getMethodText = (resultOrId) => {
-    if (!resultOrId) return 'Okänd metod'
+    if (!resultOrId) return 'Unknown method'
 
     const targetId = typeof resultOrId === 'object'
       ? (resultOrId.cookingMethodId || resultOrId.CookingMethodId)
       : resultOrId
 
-    if (!targetId) return 'Okänd metod'
+    if (!targetId) return 'Unknown method'
 
     const targetStr = String(targetId).trim().toLowerCase()
 
@@ -145,7 +141,7 @@ export function AddLogPage() {
       return id && String(id).trim().toLowerCase() === targetStr
     })
 
-    if (!found) return 'Okänd metod'
+    if (!found) return 'Unknown method'
 
     const methodEnumValue = found.method !== undefined ? found.method : found.Method
     return getMethodLabel(methodEnumValue)
@@ -189,9 +185,8 @@ export function AddLogPage() {
         setVariantName('')
         setVariantType(0)
       } else if (category === 'dish') {
-        if (!selectedVariant) throw new Error('Du måste välja en variant.')
+        if (!selectedVariant) throw new Error('You must pick a variant for the dish.')
 
-        // 1. Skapa maträtten
         const createdDish = await createDish({
           name: dishName,
           variantId: selectedVariant,
@@ -201,7 +196,6 @@ export function AddLogPage() {
 
         const newDishId = createdDish?.dishId || createdDish?.DishId || createdDish?.id
 
-        // 2. Skapa ett RecipeStep för varje valt Resultat enligt RecipeStepDTO
         if (selectedResults.length > 0 && newDishId) {
           await Promise.all(
             selectedResults.map((resId) =>
@@ -227,13 +221,13 @@ export function AddLogPage() {
         setSelectedMethod('')
       }
 
-      setMessage({ type: 'success', text: `Sparade ny ${category} framgångsrikt!` })
+      setMessage({ type: 'success', text: `Created ${category} successfully!` })
       await fetchInitialData()
     } catch (err) {
       console.error('Error saving:', err)
 
       const validationErrors = err.response?.data?.errors
-      let errorText = err.response?.data?.title || err.message || 'Det gick inte att spara.'
+      let errorText = err.response?.data?.title || err.message || 'There was an error saving the data.'
 
       if (validationErrors) {
         const details = Object.entries(validationErrors)
@@ -262,10 +256,10 @@ export function AddLogPage() {
   return (
     <Box maxWidth="650px" mx="auto" py={3} px={2}>
       <Typography variant="h4" fontWeight="bold" gutterBottom textAlign="center">
-        Matloggen
+        Food logger - Add new data
       </Typography>
       <Typography variant="body2" color="text.secondary" textAlign="center" mb={3}>
-        Registrera nya ingredienser, tillagningsmetoder, varianter eller utvärdera kulinära resultat.
+        Register new ingredients, cooking methods, dishes, variants, or log results. Use the tabs below to select what you want to add.
       </Typography>
 
       <Paper elevation={0} sx={{ p: 0.5, bgcolor: 'background.default', mb: 3 }}>
@@ -278,19 +272,19 @@ export function AddLogPage() {
           size="small"
         >
           <ToggleButton value="result">
-            <RateReviewIcon sx={{ mr: 0.5 }} /> Resultat
+            <RateReviewIcon sx={{ mr: 0.5 }} /> Result
           </ToggleButton>
           <ToggleButton value="ingredient">
-            <LocalGroceryStoreIcon sx={{ mr: 0.5 }} /> Ingrediens
+            <LocalGroceryStoreIcon sx={{ mr: 0.5 }} /> Ingredient
           </ToggleButton>
           <ToggleButton value="method">
-            <OutdoorGrillIcon sx={{ mr: 0.5 }} /> Metod
+            <OutdoorGrillIcon sx={{ mr: 0.5 }} /> Method
           </ToggleButton>
           <ToggleButton value="variant">
             <CategoryIcon sx={{ mr: 0.5 }} /> Variant
           </ToggleButton>
           <ToggleButton value="dish">
-            <RestaurantMenuIcon sx={{ mr: 0.5 }} /> Rätt
+            <RestaurantMenuIcon sx={{ mr: 0.5 }} /> Dish
           </ToggleButton>
         </ToggleButtonGroup>
       </Paper>
@@ -309,13 +303,13 @@ export function AddLogPage() {
               {category === 'ingredient' && (
                 <>
                   <Typography variant="h6" fontWeight="600">
-                    Skapa Ingrediens
+                    Add ingredient
                   </Typography>
                   <TextField
                     required
                     fullWidth
-                    label="Ingrediensnamn"
-                    placeholder="t.ex. San Marzano-tomater"
+                    label="Ingredient name"
+                    placeholder="e.g. Rotten eggs"
                     value={ingredientName}
                     onChange={(e) => setIngredientName(e.target.value)}
                   />
@@ -326,12 +320,12 @@ export function AddLogPage() {
                         onChange={(e) => setEdibleRaw(e.target.checked)}
                       />
                     }
-                    label="Kan ätas rå (Edible Raw)"
+                    label="Edible raw"
                   />
                   <Divider />
                   <Box>
                     <Typography component="legend" variant="body2" color="text.secondary" mb={1}>
-                      Standardskattning / Betyg (Score)
+                      Score
                     </Typography>
                     <Rating
                       size="large"
@@ -347,19 +341,16 @@ export function AddLogPage() {
                 <>
                   <Box>
                     <Typography variant="h6" fontWeight="600">
-                      Skapa Tillagningsmetod
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Obs: Registrerade tillagningsmetoder kan inte redigeras i efterhand.
+                      Create a cooking method
                     </Typography>
                   </Box>
 
                   <FormControl fullWidth required>
-                    <InputLabel id="method-enum-label">Metod-typ</InputLabel>
+                    <InputLabel id="method-enum-label">Type of cooking method</InputLabel>
                     <Select
                       labelId="method-enum-label"
                       value={methodEnum}
-                      label="Metod-typ"
+                      label="Type-of-cooking-method"
                       onChange={(e) => setMethodEnum(e.target.value)}
                     >
                       {COOKING_METHODS.map((m) => (
@@ -374,7 +365,7 @@ export function AddLogPage() {
 
                   <Box>
                     <Typography component="legend" variant="body2" color="text.secondary" mb={1}>
-                      Standardskattning / Betyg (Score)
+                      Score
                     </Typography>
                     <Rating
                       size="large"
@@ -389,24 +380,24 @@ export function AddLogPage() {
               {category === 'variant' && (
                 <>
                   <Typography variant="h6" fontWeight="600">
-                    Skapa Variant
+                    Add variant
                   </Typography>
                   <TextField
                     required
                     fullWidth
-                    label="Variantnamn"
-                    placeholder="t.ex. Vegetarisk med Havregrädde"
+                    label="Variant name"
+                    placeholder="t.ex. Vegan gluten free"
                     value={variantName}
                     onChange={(e) => setVariantName(e.target.value)}
                     inputProps={{ maxLength: 150 }}
                   />
 
                   <FormControl fullWidth required>
-                    <InputLabel id="variant-type-label">Typ av Rätt</InputLabel>
+                    <InputLabel id="variant-type-label">Dish type</InputLabel>
                     <Select
                       labelId="variant-type-label"
                       value={variantType}
-                      label="Typ av Rätt"
+                      label="Dish type"
                       onChange={(e) => setVariantType(e.target.value)}
                     >
                       {DISH_TYPES.map((t) => (
@@ -423,31 +414,31 @@ export function AddLogPage() {
               {category === 'dish' && (
                 <>
                   <Typography variant="h6" fontWeight="600">
-                    Skapa Rätt
+                    Add dish
                   </Typography>
                   <TextField
                     required
                     fullWidth
-                    label="Rättens Namn"
-                    placeholder="t.ex. Cacio e Pepe"
+                    label="Dish Name"
+                    placeholder="e.g. Cacio e Pepe"
                     value={dishName}
                     onChange={(e) => setDishName(e.target.value)}
                   />
 
                   {/* VARIANT DROPDOWN */}
                   <FormControl fullWidth required>
-                    <InputLabel id="variant-select-label">Välj Variant</InputLabel>
+                    <InputLabel id="variant-select-label">Choose Variant</InputLabel>
                     <Select
                       labelId="variant-select-label"
                       value={selectedVariant}
-                      label="Välj Variant"
+                      label="Pick a Variant"
                       onChange={(e) => setSelectedVariant(e.target.value)}
                     >
                       {variants.map((v) => {
                         const vId = v.variantId || v.VariantId || v.id
                         const vName = v.name || v.Name
                         const vType = v.type !== undefined ? v.type : v.Type
-                        const typeLabel = vType !== undefined ? getDishTypeLabel(vType) : 'Okänd typ'
+                        const typeLabel = vType !== undefined ? getDishTypeLabel(vType) : 'Unknown type'
 
                         return (
                           <MenuItem key={vId} value={vId}>
@@ -460,13 +451,13 @@ export function AddLogPage() {
 
                   {/* RECIPESTEPS (RESULTAT) DROPDOWN */}
                   <FormControl fullWidth>
-                    <InputLabel id="results-select-label">Koppla Receptsteg (Resultat)</InputLabel>
+                    <InputLabel id="results-select-label">Recipe steps</InputLabel>
                     <Select
                       labelId="results-select-label"
                       multiple
                       value={selectedResults}
                       onChange={(e) => setSelectedResults(e.target.value)}
-                      label="Koppla Receptsteg (Resultat)"
+                      label="Recipe steps"
                       renderValue={(selected) =>
                         resultsList
                           .filter((r) => selected.includes(r.resultId || r.ResultId || r.id))
@@ -487,7 +478,7 @@ export function AddLogPage() {
                             <Checkbox checked={isChecked} />
                             <ListItemText
                               primary={ingName}
-                              secondary={`Metod: ${methLabel}${resComment ? ` - "${resComment}"` : ''}`}
+                              secondary={`Method: ${methLabel}${resComment ? ` - "${resComment}"` : ''}`}
                             />
                           </MenuItem>
                         )
@@ -499,7 +490,7 @@ export function AddLogPage() {
 
                   <Box>
                     <Typography component="legend" variant="body2" color="text.secondary" mb={1}>
-                      Standardskattning / Betyg (Score)
+                      Score
                     </Typography>
                     <Rating
                       size="large"
@@ -514,14 +505,17 @@ export function AddLogPage() {
               {category === 'result' && (
                 <>
                   <Typography variant="h6" fontWeight="600">
-                    Logga Resultat
+                    Log Result
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" mb={1}>
+                    Select the ingredient and cooking method used, then add any comments or notes about the result.
                   </Typography>
                   <FormControl fullWidth required>
-                    <InputLabel id="ing-select-label">Välj Ingrediens</InputLabel>
+                    <InputLabel id="ing-select-label">Pick ingredient</InputLabel>
                     <Select
                       labelId="ing-select-label"
                       value={selectedIngredient}
-                      label="Välj Ingrediens"
+                      label="Pick ingredient"
                       onChange={(e) => setSelectedIngredient(e.target.value)}
                     >
                       {ingredients.map((ing) => {
@@ -537,11 +531,11 @@ export function AddLogPage() {
                   </FormControl>
 
                   <FormControl fullWidth required>
-                    <InputLabel id="method-select-label">Välj Tillagningsmetod</InputLabel>
+                    <InputLabel id="method-select-label">Pick cooking method</InputLabel>
                     <Select
                       labelId="method-select-label"
                       value={selectedMethod}
-                      label="Välj Tillagningsmetod"
+                      label="Pick cooking method"
                       onChange={(e) => setSelectedMethod(e.target.value)}
                     >
                       {methods.map((m) => {
@@ -561,8 +555,8 @@ export function AddLogPage() {
                     fullWidth
                     multiline
                     rows={4}
-                    label="Kommentar / Anteckningar"
-                    placeholder="Beskriv resultatet, konsistens, smak etc."
+                    label="Comment / Notes"
+                    placeholder="Describe the result, consistency, taste etc."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                   />
@@ -576,7 +570,7 @@ export function AddLogPage() {
                 disabled={loading}
                 sx={{ py: 1.5, fontWeight: 'bold' }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : `Spara ${category}`}
+                {loading ? <CircularProgress size={24} color="inherit" /> : `Save ${category}`}
               </Button>
             </Stack>
           </Box>

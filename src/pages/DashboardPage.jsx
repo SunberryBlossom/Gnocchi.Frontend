@@ -85,11 +85,10 @@ export function DashboardPage() {
       const series = sortedIngs.map(([, count]) => count)
 
       setTopIngredientsData({
-        categories: categories.length > 0 ? categories : ['Inga resultat'],
+        categories: categories.length > 0 ? categories : ['No results yet'],
         series: series.length > 0 ? series : [0]
       })
 
-      // 2. Koppla resultats cookingMethodId till metod-labels för PieChart
       const methodMap = {}
       methods.forEach((m) => {
         const id = String(m.cookingMethodId || m.id || '').toLowerCase()
@@ -100,7 +99,7 @@ export function DashboardPage() {
       const methodCounts = {}
       results.forEach((res) => {
         const mId = String(res.cookingMethodId || '').toLowerCase()
-        const label = methodMap[mId] || 'Övrigt'
+        const label = methodMap[mId] || 'Other'
         methodCounts[label] = (methodCounts[label] || 0) + 1
       })
 
@@ -121,7 +120,7 @@ export function DashboardPage() {
         avgScore: results.length > 0 ? (results.length / ingredients.length).toFixed(1) : '0.0'
       })
     } catch (err) {
-      console.error('Kunde inte läsa in dashboarddata:', err)
+      console.error('Could not fetch dashboard data:', err)
     } finally {
       setLoading(false)
     }
@@ -198,7 +197,7 @@ export function DashboardPage() {
               />
             ) : (
               <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
-                Ingen betygssatt ingrediens hittades ännu.
+                No scored ingredients logged yet.
               </Typography>
             )}
           </Box>
@@ -230,7 +229,7 @@ export function DashboardPage() {
               />
             ) : (
               <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
-                Inga tillagningsmetoder registrerade än.
+                No cooking methods logged yet.
               </Typography>
             )}
           </Box>
